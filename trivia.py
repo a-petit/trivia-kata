@@ -7,6 +7,7 @@ class Player:
     _name: str
     _position: int = 0
     _coins: int = 0
+    _in_penalty_box: bool = False
 
     def name(self) -> str:
         return self._name
@@ -25,12 +26,18 @@ class Player:
     def coins(self) -> int:
         return self._coins
 
+    def move_in_penalty_box(self):
+        # TODO : ask the PO - on ne sort jamais de la penalty box ??
+        self._in_penalty_box = True
+
+    def in_penalty_box(self) -> bool:
+        return self._in_penalty_box
+
 
 class Game:
     def __init__(self):
         # TODO : Missing Player abstraction ?
         self._players: list[Player] = []
-        self.in_penalty_box = [0] * 6
 
         self.current_player_index = 0
         self.is_getting_out_of_penalty_box = False
@@ -49,8 +56,6 @@ class Game:
     def add(self, player_name):
         self._players.append(Player(player_name))
 
-        self.in_penalty_box[len(self._players)] = False
-
         self._display_new_player(player_name)
 
     def _display_new_player(self, player_name):
@@ -60,7 +65,7 @@ class Game:
     def roll(self, roll):
         self._display_player_roll(roll)
 
-        if self.in_penalty_box[self.current_player_index]:
+        if self._player().in_penalty_box():
             roll_is_even = roll % 2 == 0
             if roll_is_even:
                 self._display_not_getting_out_penalty_box()
@@ -69,7 +74,7 @@ class Game:
                 self.is_getting_out_of_penalty_box = True
                 self._display_getting_out_penalty_box()
 
-        if not self.in_penalty_box[self.current_player_index] or self.is_getting_out_of_penalty_box:
+        if not self._player().in_penalty_box() or self.is_getting_out_of_penalty_box:
             self._move_player(roll)
             self._display_player_place_and_category()
             self._ask_question()
@@ -120,7 +125,7 @@ class Game:
 
     def was_correctly_answered(self):
         # TODO : CQS non respecté
-        if self.in_penalty_box[self.current_player_index] and not self.is_getting_out_of_penalty_box:
+        if self._player().in_penalty_box() and not self.is_getting_out_of_penalty_box:
             self._select_next_player()
             return True
         else:
@@ -141,7 +146,7 @@ class Game:
 
     def wrong_answer(self):
         self._display_move_player_in_penalty_box()
-        self.in_penalty_box[self.current_player_index] = True
+        self._player().move_in_penalty_box()
         self._select_next_player()
         return True
 
