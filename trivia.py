@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
+from dataclasses import dataclass
+
+
+@dataclass
+class Player:
+    _name: str
+
+    def name(self) -> str:
+        return self._name
+
 
 class Game:
     def __init__(self):
         # TODO : Missing Player abstraction ?
-        self.player_names = []
+        self._players: list[Player] = []
         self._position = [0] * 6
         self._coins = [0] * 6
         self.in_penalty_box = [0] * 6
@@ -23,16 +33,17 @@ class Game:
             self.rock_questions.append("Rock Question %s" % i)
 
     def add(self, player_name):
-        self.player_names.append(player_name)
-        self._position[len(self.player_names)] = 0
-        self._coins[len(self.player_names)] = 0
-        self.in_penalty_box[len(self.player_names)] = False
+        self._players.append(Player(player_name))
+
+        self._position[len(self._players)] = 0
+        self._coins[len(self._players)] = 0
+        self.in_penalty_box[len(self._players)] = False
 
         self._display_new_player(player_name)
 
     def _display_new_player(self, player_name):
         print(player_name + " was added")
-        print("They are player number %s" % len(self.player_names))
+        print("They are player number %s" % len(self._players))
 
     def roll(self, roll):
         self._display_player_roll(roll)
@@ -52,10 +63,10 @@ class Game:
             self._ask_question()
 
     def _display_not_getting_out_penalty_box(self):
-        print("%s is not getting out of the penalty box" % self.player_names[self.current_player])
+        print("%s is not getting out of the penalty box" % self._players[self.current_player].name())
 
     def _display_player_place_and_category(self):
-        print(self.player_names[self.current_player] + '\'s new location is ' + str(self._position[self.current_player]))
+        print(self._players[self.current_player].name() + '\'s new location is ' + str(self._position[self.current_player]))
         print("The category is %s" % self._current_category)
 
     def _move_player(self, roll):
@@ -64,10 +75,10 @@ class Game:
             self._position[self.current_player] -= 12
 
     def _display_getting_out_penalty_box(self):
-        print("%s is getting out of the penalty box" % self.player_names[self.current_player])
+        print("%s is getting out of the penalty box" % self._players[self.current_player].name())
 
     def _display_player_roll(self, roll):
-        print("%s is the current player" % self.player_names[self.current_player])
+        print("%s is the current player" % self._players[self.current_player].name())
         print("They have rolled a %s" % roll)
 
     def _ask_question(self):
@@ -108,7 +119,7 @@ class Game:
 
     def _select_next_player(self):
         self.current_player += 1
-        if self.current_player == len(self.player_names):
+        if self.current_player == len(self._players):
             self.current_player = 0
 
     def _add_coins_to_player(self):
@@ -116,7 +127,7 @@ class Game:
 
     def _display_correct_answer_and_player_coins(self):
         print('Answer was correct!!!!')
-        print(self.player_names[self.current_player] + ' now has ' + str(self._coins[self.current_player]) + ' Gold Coins.')
+        print(self._players[self.current_player].name() + ' now has ' + str(self._coins[self.current_player]) + ' Gold Coins.')
 
     def wrong_answer(self):
         self._display_move_player_in_penalty_box()
@@ -126,7 +137,7 @@ class Game:
 
     def _display_move_player_in_penalty_box(self):
         print('Question was incorrectly answered')
-        print(self.player_names[self.current_player] + " was sent to the penalty box")
+        print(self._players[self.current_player].name() + " was sent to the penalty box")
 
     def _did_player_win(self):
         return not (self._coins[self.current_player] == 6)
