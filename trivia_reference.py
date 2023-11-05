@@ -146,7 +146,7 @@ class Game:
 from random import randrange
 
 
-def play_game():
+def play_game_reference():
     not_a_winner = False
     game = Game()
     game.add('Chet')
