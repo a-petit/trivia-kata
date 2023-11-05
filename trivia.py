@@ -44,16 +44,23 @@ class Game:
         self.current_player_index = 0
         self.is_getting_out_of_penalty_box = False
 
-        self.pop_questions = []
-        self.science_questions = []
-        self.sports_questions = []
-        self.rock_questions = []
+        pop_questions = []
+        science_questions = []
+        sports_questions = []
+        rock_questions = []
 
         for i in range(50):
-            self.pop_questions.append("Pop Question %s" % i)
-            self.science_questions.append("Science Question %s" % i)
-            self.sports_questions.append("Sports Question %s" % i)
-            self.rock_questions.append("Rock Question %s" % i)
+            pop_questions.append("Pop Question %s" % i)
+            science_questions.append("Science Question %s" % i)
+            sports_questions.append("Sports Question %s" % i)
+            rock_questions.append("Rock Question %s" % i)
+
+        self._deck = {
+            'Pop': pop_questions,
+            'Science': science_questions,
+            'Sports': sports_questions,
+            'Rock': rock_questions,
+        }
 
     def add(self, player_name):
         self._players.append(Player(player_name))
@@ -102,28 +109,14 @@ class Game:
         print("They have rolled a %s" % roll)
 
     def _ask_question(self):
-        # TODO : logique conditionnelle, code duplication
-        if self._current_category == 'Pop': print(self.pop_questions.pop(0))
-        if self._current_category == 'Science': print(self.science_questions.pop(0))
-        if self._current_category == 'Sports': print(self.sports_questions.pop(0))
-        if self._current_category == 'Rock': print(self.rock_questions.pop(0))
+        question = self._deck[self._current_category].pop(0)
+        print(question)
 
     @property
     def _current_category(self):
-        # TODO : logique conditionnelle, duplication
-        if self._player().position() == 0: return 'Pop'
-        if self._player().position() == 4: return 'Pop'
-        if self._player().position() == 8: return 'Pop'
-
-        if self._player().position() == 1: return 'Science'
-        if self._player().position() == 5: return 'Science'
-        if self._player().position() == 9: return 'Science'
-
-        if self._player().position() == 2: return 'Sports'
-        if self._player().position() == 6: return 'Sports'
-        if self._player().position() == 10: return 'Sports'
-
-        return 'Rock'
+        categories = ['Pop', 'Science', 'Sports', 'Rock']
+        category_index = self._player().position() % len(categories)
+        return categories[category_index]
 
     def answer_correctly(self):
         if self._player().in_penalty_box() and not self.is_getting_out_of_penalty_box:
