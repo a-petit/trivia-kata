@@ -5,20 +5,28 @@ from dataclasses import dataclass
 @dataclass
 class Player:
     _name: str
+    _position: int = 0
 
     def name(self) -> str:
         return self._name
+
+    def move(self, roll):
+        self._position += roll
+        if self._position > 11:
+            self._position -= 12
+
+    def position(self) -> int:
+        return self._position
 
 
 class Game:
     def __init__(self):
         # TODO : Missing Player abstraction ?
         self._players: list[Player] = []
-        self._position = [0] * 6
         self._coins = [0] * 6
         self.in_penalty_box = [0] * 6
 
-        self.current_player = 0
+        self.current_player_index = 0
         self.is_getting_out_of_penalty_box = False
 
         self.pop_questions = []
@@ -35,7 +43,6 @@ class Game:
     def add(self, player_name):
         self._players.append(Player(player_name))
 
-        self._position[len(self._players)] = 0
         self._coins[len(self._players)] = 0
         self.in_penalty_box[len(self._players)] = False
 
@@ -48,7 +55,7 @@ class Game:
     def roll(self, roll):
         self._display_player_roll(roll)
 
-        if self.in_penalty_box[self.current_player]:
+        if self.in_penalty_box[self.current_player_index]:
             roll_is_even = roll % 2 == 0
             if roll_is_even:
                 self._display_not_getting_out_penalty_box()
@@ -57,28 +64,29 @@ class Game:
                 self.is_getting_out_of_penalty_box = True
                 self._display_getting_out_penalty_box()
 
-        if not self.in_penalty_box[self.current_player] or self.is_getting_out_of_penalty_box:
+        if not self.in_penalty_box[self.current_player_index] or self.is_getting_out_of_penalty_box:
             self._move_player(roll)
             self._display_player_place_and_category()
             self._ask_question()
 
     def _display_not_getting_out_penalty_box(self):
-        print("%s is not getting out of the penalty box" % self._players[self.current_player].name())
+        print("%s is not getting out of the penalty box" % self._player().name())
 
     def _display_player_place_and_category(self):
-        print(self._players[self.current_player].name() + '\'s new location is ' + str(self._position[self.current_player]))
+        print(self._player().name() + '\'s new location is ' + str(self._player().position()))
         print("The category is %s" % self._current_category)
 
     def _move_player(self, roll):
-        self._position[self.current_player] += roll
-        if self._position[self.current_player] > 11:
-            self._position[self.current_player] -= 12
+        self._player().move(roll)
+
+    def _player(self):
+        return self._players[self.current_player_index]
 
     def _display_getting_out_penalty_box(self):
-        print("%s is getting out of the penalty box" % self._players[self.current_player].name())
+        print("%s is getting out of the penalty box" % self._player().name())
 
     def _display_player_roll(self, roll):
-        print("%s is the current player" % self._players[self.current_player].name())
+        print("%s is the current player" % self._player().name())
         print("They have rolled a %s" % roll)
 
     def _ask_question(self):
@@ -91,23 +99,23 @@ class Game:
     @property
     def _current_category(self):
         # TODO : logique conditionnelle, duplication
-        if self._position[self.current_player] == 0: return 'Pop'
-        if self._position[self.current_player] == 4: return 'Pop'
-        if self._position[self.current_player] == 8: return 'Pop'
+        if self._player().position() == 0: return 'Pop'
+        if self._player().position() == 4: return 'Pop'
+        if self._player().position() == 8: return 'Pop'
 
-        if self._position[self.current_player] == 1: return 'Science'
-        if self._position[self.current_player] == 5: return 'Science'
-        if self._position[self.current_player] == 9: return 'Science'
+        if self._player().position() == 1: return 'Science'
+        if self._player().position() == 5: return 'Science'
+        if self._player().position() == 9: return 'Science'
 
-        if self._position[self.current_player] == 2: return 'Sports'
-        if self._position[self.current_player] == 6: return 'Sports'
-        if self._position[self.current_player] == 10: return 'Sports'
+        if self._player().position() == 2: return 'Sports'
+        if self._player().position() == 6: return 'Sports'
+        if self._player().position() == 10: return 'Sports'
 
         return 'Rock'
 
     def was_correctly_answered(self):
         # TODO : CQS non respecté
-        if self.in_penalty_box[self.current_player] and not self.is_getting_out_of_penalty_box:
+        if self.in_penalty_box[self.current_player_index] and not self.is_getting_out_of_penalty_box:
             self._select_next_player()
             return True
         else:
@@ -118,29 +126,29 @@ class Game:
             return winner
 
     def _select_next_player(self):
-        self.current_player += 1
-        if self.current_player == len(self._players):
-            self.current_player = 0
+        self.current_player_index += 1
+        if self.current_player_index == len(self._players):
+            self.current_player_index = 0
 
     def _add_coins_to_player(self):
-        self._coins[self.current_player] += 1
+        self._coins[self.current_player_index] += 1
 
     def _display_correct_answer_and_player_coins(self):
         print('Answer was correct!!!!')
-        print(self._players[self.current_player].name() + ' now has ' + str(self._coins[self.current_player]) + ' Gold Coins.')
+        print(self._player().name() + ' now has ' + str(self._coins[self.current_player_index]) + ' Gold Coins.')
 
     def wrong_answer(self):
         self._display_move_player_in_penalty_box()
-        self.in_penalty_box[self.current_player] = True
+        self.in_penalty_box[self.current_player_index] = True
         self._select_next_player()
         return True
 
     def _display_move_player_in_penalty_box(self):
         print('Question was incorrectly answered')
-        print(self._players[self.current_player].name() + " was sent to the penalty box")
+        print(self._player().name() + " was sent to the penalty box")
 
     def _did_player_win(self):
-        return not (self._coins[self.current_player] == 6)
+        return not (self._coins[self.current_player_index] == 6)
 
 
 from random import randrange
