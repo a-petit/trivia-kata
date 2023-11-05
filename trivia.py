@@ -33,10 +33,12 @@ class Player:
     def in_penalty_box(self) -> bool:
         return self._in_penalty_box
 
+    def has_won(self) -> bool:
+        return self._coins == 6
+
 
 class Game:
     def __init__(self):
-        # TODO : Missing Player abstraction ?
         self._players: list[Player] = []
 
         self.current_player_index = 0
@@ -123,17 +125,13 @@ class Game:
 
         return 'Rock'
 
-    def was_correctly_answered(self):
-        # TODO : CQS non respecté
+    def answer_correctly(self):
         if self._player().in_penalty_box() and not self.is_getting_out_of_penalty_box:
             self._select_next_player()
-            return True
         else:
             self._player().add_coin()
             self._display_correct_answer_and_player_coins()
-            winner = self._did_player_win()
             self._select_next_player()
-            return winner
 
     def _select_next_player(self):
         self.current_player_index += 1
@@ -144,18 +142,20 @@ class Game:
         print('Answer was correct!!!!')
         print(self._player().name() + ' now has ' + str(self._player().coins()) + ' Gold Coins.')
 
-    def wrong_answer(self):
+    def answer_incorrectly(self):
         self._display_move_player_in_penalty_box()
         self._player().move_in_penalty_box()
         self._select_next_player()
-        return True
 
     def _display_move_player_in_penalty_box(self):
         print('Question was incorrectly answered')
         print(self._player().name() + " was sent to the penalty box")
 
-    def _did_player_win(self):
-        return not (self._player().coins() == 6)
+    def has_winner(self) -> bool:
+        for player in self._players:
+            if player.has_won():
+                return True
+        return False
 
 
 from random import randrange
@@ -166,14 +166,13 @@ def play_game():
     game.add('Chet')
     game.add('Pat')
     game.add('Sue')
-    not_a_winner = True
-    while not_a_winner:
+    while not game.has_winner():
         game.roll(randrange(5) + 1)
 
         if randrange(9) == 7:
-            not_a_winner = game.wrong_answer()
+            game.answer_incorrectly()
         else:
-            not_a_winner = game.was_correctly_answered()
+            game.answer_correctly()
 
 
 if __name__ == '__main__':
